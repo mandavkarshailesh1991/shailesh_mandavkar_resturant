@@ -4,8 +4,14 @@ import sqlite3
 import qrcode
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+import os
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
+
+# Ensure 'static' directory exists
+if not os.path.exists("static"):
+    os.makedirs("static")
 
 # Serve static HTML files
 app.mount("/static", StaticFiles(directory="static"), name="static")
