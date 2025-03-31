@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitchen Orders</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .order { border: 1px solid #ddd; padding: 10px; margin: 10px 0; transition: background 0.5s; position: relative; }
+        .completed { background: #d4edda; } /* Light green background for completed orders */
+        .served::after { content: '\2605'; /* Star symbol */ font-size: 20px; color: gold; position: absolute; top: 10px; right: 10px; }
+        button { padding: 8px; background: #28a745; color: white; border: none; cursor: pointer; }
+        button:hover { background: #218838; }
+    </style>
+</head>
+<body>
+    <h1>Kitchen Orders</h1>
+    <div id="orders"></div>
+
+    <script>
+        async function fetchOrders() {
+            const response = await fetch('http://11.111.11.11:8000/orders');
+            const data = await response.json();
+            const ordersDiv = document.getElementById('orders');
+            ordersDiv.innerHTML = '';
+
+            if (data.orders.length === 0) {
+                ordersDiv.innerHTML = '<p>No new orders.</p>';
+                return;
+            }
+
+            data.orders.forEach(order => {
+                const div = document.createElement('div');
+                div.className = 'order';
+                div.id = `order-${order.id}`;
+                if (order.order_status === 'Completed') {
+                    div.classList.add('completed', 'served'); // Keeps the star visible
+                }
+                div.innerHTML = `<p><strong>Order #${order.id}</strong></p>
+                                 <p><strong>Customer:</strong> ${order.customer_name}</p>
+                                 <p><strong>Items:</strong> ${order.items}</p>
+                                 <p><strong>Total Price:</strong> $${order.total_price.toFixed(2)}</p>
+                                 ${order.order_status === 'Pending' ? `<button onclick="markAsCompleted(${order.id})">Mark as Completed</button>` : '<p><strong>✔ Served</strong></p>'}`;
+                ordersDiv.appendChild(div);
+            });
+        }
+
+        async function markAsCompleted(orderId) {
+            await fetch(`http://111.111.11.11:8000/orders/${orderId}/complete`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+
+   	 // Update UI immediately
+  	  const orderDiv = document.getElementById(`order-${orderId}`);
+    		if (orderDiv) {
+        orderDiv.classList.add('completed', 'served');
+        orderDiv.innerHTML += '<p><strong>✔ Served</strong></p>';
+    }
+}
+	
+		
+            //fetchOrders(); // Refresh orders to persist the status
+      //  }
+
+        fetchOrders();
+        setInterval(fetchOrders, 5000);  // Refresh orders every 5 seconds
+    </script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Self-Ordering System</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .menu-item { margin: 10px 0; }
+        button { padding: 10px; background: green; color: white; border: none; cursor: pointer; }
+        button:hover { background: darkgreen; }
+    </style>
+</head>
+<body>
+    <h1>Restaurant Menu</h1>
+    <label for="customerName">Enter Your Name:</label>
+    <input type="text" id="customerName" placeholder="Your Name" required>
+    <div id="menu"></div>
+    <button onclick="placeOrder()">Place Order</button>
+    <p id="message"></p>
+
+    <script>
+        async function fetchMenu() {
+            const response = await fetch('http://111.111.11.11:8000/menu');
+            const data = await response.json();
+            const menuDiv = document.getElementById('menu');
+            
+            data.menu.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'menu-item';
+                div.innerHTML = `<input type='checkbox' value='${item.name}'> ${item.name} - $${item.price}`;
+                menuDiv.appendChild(div);
+            });
+        }
+
+        async function placeOrder() {
+            const customerName = document.getElementById('customerName').value;
+            if (!customerName) {
+                alert("Please enter your name before placing an order.");
+                return;
+            }
+            
+            const selectedItems = Array.from(document.querySelectorAll('input[type=checkbox]:checked'))
+                                      .map(checkbox => checkbox.value);
+            
+            if (selectedItems.length === 0) {
+                alert("Please select at least one item.");
+                return;
+            }
+            
+            const response = await fetch('http://111.111.11.11:8000/order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ customer_name: customerName, items: selectedItems })
+            });
+            const result = await response.json();
+            document.getElementById('message').innerText = result.message;
+        }
+        
+        fetchMenu();
+    </script>
+</body>
+</html>
